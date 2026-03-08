@@ -1,9 +1,3 @@
-    /**
-     * ============================================================
-     * CHATBOT MODULE
-     * ============================================================
-     */
-
     const SYSTEM_PROMPT = `
 You are a helpful AI assistant for Jin Ping Ng's portfolio website.
 Answer questions about her accurately and concisely in 2–4 sentences.
@@ -47,7 +41,6 @@ SKILLS
               prompt engineering, user studies, 3D computer vision
     `.trim();
 
-    // DOM references
     const chatPanel      = document.getElementById('chat-panel');
     const chatToggleBtn  = document.getElementById('chat-toggle');
     const chatCloseBtn   = document.getElementById('chat-close');
@@ -57,9 +50,8 @@ SKILLS
     const chatSuggestions = document.getElementById('chat-suggestions');
 
     let isChatLoading = false;
-    let chatHistory   = [];   // maintains multi-turn conversation context
+    let chatHistory   = []; 
 
-    // Open / close panel
     chatToggleBtn.addEventListener('click', () => {
       chatPanel.classList.add('open');
       chatToggleBtn.style.display = 'none';
@@ -71,12 +63,10 @@ SKILLS
       chatToggleBtn.style.display = 'flex';
     });
 
-    // Suggestion chips
     chatSuggestions.querySelectorAll('.suggestion-chip').forEach(chip => {
       chip.addEventListener('click', () => sendChatMessage(chip.textContent));
     });
 
-    // Keyboard & button submit
     chatInput.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -85,7 +75,6 @@ SKILLS
     });
     chatSendBtn.addEventListener('click', () => sendChatMessage());
 
-    /** Append a message bubble to the chat */
     function appendMessage(text, role) {
       const el = document.createElement('div');
       el.className   = `chat-msg chat-msg--${role}`;
@@ -94,7 +83,6 @@ SKILLS
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    /** Show the animated typing indicator while waiting for a response */
     function showTypingIndicator() {
       const el = document.createElement('div');
       el.className = 'chat-msg chat-msg--bot';
@@ -108,13 +96,12 @@ SKILLS
       document.getElementById('typing-indicator')?.remove();
     }
 
-    /** Send a message to Claude and stream the response into the chat */
     async function sendChatMessage(text) {
       const userText = text ?? chatInput.value.trim();
       if (!userText || isChatLoading) return;
 
       chatInput.value = '';
-      chatSuggestions.style.display = 'none';   // hide chips after first message
+      chatSuggestions.style.display = 'none'; 
       appendMessage(userText, 'user');
       showTypingIndicator();
       chatSendBtn.disabled = true;
@@ -123,26 +110,32 @@ SKILLS
       chatHistory.push({ role: 'user', content: userText });
 
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const response = await fetch('http://localhost:3000/api/chat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
-            model:      'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            system:     SYSTEM_PROMPT,
-            messages:   chatHistory,
+            messages: chatHistory,
+            systemPrompt: SYSTEM_PROMPT,
           }),
         });
 
-        const data  = await response.json();
-        const reply = data.content?.[0]?.text ?? 'Sorry, something went wrong!';
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'API request failed');
+        }
+
+        const reply = data.reply || 'Sorry, something went wrong!';
         chatHistory.push({ role: 'assistant', content: reply });
 
         removeTypingIndicator();
         appendMessage(reply, 'bot');
       } catch (err) {
+        console.error('Chat Error:', err);
         removeTypingIndicator();
-        appendMessage('Something went wrong — please try again!', 'bot');
+        appendMessage(`Something went wrong — ${err.message}`, 'bot');
       }
 
       chatSendBtn.disabled = false;

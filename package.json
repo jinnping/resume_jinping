@@ -1,0 +1,19 @@
+{
+  "name": "jin-ping-portfolio-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend server for Jin Ping's portfolio chat",
+  "main": "backend.js",
+  "scripts": {
+    "start": "node backend.js",
+    "dev": "node --watch backend.js"
+  },
+  "keywords": ["openai", "chat", "portfolio"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+}

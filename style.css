@@ -14,7 +14,6 @@
       --shadow-card:  rgba(0, 0, 0, 0.5);
     }
 
-    /* --- Light theme --- */
     [data-theme="light"] {
       --bg:           #f6f1e8;
       --bg2:          #eee8dc;
@@ -227,10 +226,6 @@
       background:   var(--amber-glow);
     }
 
-
-    /* =========================================================
-       HERO SECTION
-       ========================================================= */
 
     .hero {
       min-height: 100svh;
@@ -581,7 +576,6 @@
 
     .research-card--featured:hover::before { opacity: 1; }
 
-    /* --- Locked card: Room Palate --- */
     .research-card--locked {
       background: var(--bg2);
       border:     1px solid var(--border);
@@ -592,7 +586,6 @@
 
     .research-card--locked:hover { opacity: 0.55; }
 
-    /* Inner content layer — sits above the ::before / ::after pseudo-elements */
     .research-card__inner {
       position:       relative;
       z-index:        2;
