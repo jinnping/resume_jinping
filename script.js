@@ -58,7 +58,7 @@
     });
 
 
-    applyTheme(localStorage.getItem('jp-theme') || 'dark');
+    applyTheme(localStorage.getItem('jp-theme') || 'light');
     setLanguage(localStorage.getItem('jp-lang') || 'en', false);
 
 
