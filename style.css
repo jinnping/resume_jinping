@@ -59,6 +59,15 @@
       transition:    background 0.4s, color 0.4s;
     }
 
+
+    .nav-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  line-height: 1;
+}
+
     /* Film-grain texture overlay */
     body::before {
       content: '';
