@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AnimAgents — UIST '26</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  :root {
+    --ink:       #0e0c0a;
+    --ink2:      #2a2520;
+    --muted:     #7a7068;
+    --muted2:    #b0a89e;
+    --paper:     #faf8f4;
+    --paper2:    #f2ede6;
+    --paper3:    #e8e1d8;
+    --accent:    #c0392b;
+    --accent2:   #e74c3c;
+    --gold:      #b8860b;
+    --gold-light:#d4a017;
+    --teal:      #1a6b5a;
+    --border:    #d8d0c4;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1rem 3rem;
+    background: rgba(250,248,244,0.92);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    transition: box-shadow 0.3s;
+  }
+  nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
+
+  .nav-left { display: flex; align-items: center; gap: 1rem; }
+  .nav-back {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none; transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--accent); }
+
+  .nav-divider { color: var(--border); }
+
+  .nav-venue {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--teal);
+    border: 1px solid rgba(26,107,90,0.3);
+    padding: 0.2rem 0.6rem; border-radius: 2px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100svh;
+    padding: 9rem 3rem 5rem;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 4rem;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 80px 80px;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero-content { position: relative; z-index: 1; }
+
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 1.75rem;
+    opacity: 0; animation: fadeUp 0.6s 0.1s ease forwards;
+  }
+
+  .pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; padding: 0.22rem 0.7rem;
+    border-radius: 100px;
+  }
+  .pill-red   { background: rgba(192,57,43,0.1); color: var(--accent); border: 1px solid rgba(192,57,43,0.25); }
+  .pill-teal  { background: rgba(26,107,90,0.08); color: var(--teal); border: 1px solid rgba(26,107,90,0.2); }
+  .pill-muted { border: 1px solid var(--border); color: var(--muted); }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 4.5vw, 4.8rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+    opacity: 0; animation: fadeUp 0.8s 0.2s ease forwards;
+  }
+
+  .hero-title em { font-style: italic; color: var(--accent); }
+
+  .hero-subtitle {
+    font-size: 15px; color: var(--muted2);
+    line-height: 1.9; max-width: 60ch;
+    margin-bottom: 2rem;
+    opacity: 0; animation: fadeUp 0.7s 0.32s ease forwards;
+  }
+
+  .hero-ctas {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.7s 0.44s ease forwards;
+  }
+
+  .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 0.7rem 1.4rem;
+    text-decoration: none; border-radius: 2px;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: all 0.22s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; border: 1.5px solid var(--accent); }
+  .btn-primary:hover { background: #a93226; border-color: #a93226; }
+  .btn-ghost { background: transparent; color: var(--ink2); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Stats card */
+  .hero-stats {
+    position: relative; z-index: 1;
+    background: var(--paper2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    opacity: 0; animation: fadeUp 0.7s 0.55s ease forwards;
+  }
+
+  .stats-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; font-weight: 500; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 1.5rem; padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .stat-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .stat-num  {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem; line-height: 1; color: var(--accent); font-weight: 700;
+  }
+  .stat-lbl  {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .venue-block {
+    margin-top: 1.75rem; padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .venue-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--teal); font-weight: 500;
+  }
+  .venue-details {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--muted); margin-top: 0.2rem;
+  }
+
+  /* ── PAGE LAYOUT ── */
+  .page {
+    max-width: 1200px; margin: 0 auto; padding: 0 3rem;
+  }
+
+  section {
+    padding: 5rem 0;
+    border-top: 1px solid var(--border);
+    opacity: 0; transform: translateY(22px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  section.visible { opacity: 1; transform: translateY(0); }
+
+  .sec-header {
+    display: flex; align-items: baseline; gap: 1.25rem; margin-bottom: 2.5rem;
+  }
+  .sec-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; color: var(--teal); letter-spacing: 0.2em;
+    padding: 0.18rem 0.5rem; border: 1px solid rgba(26,107,90,0.25);
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .sec-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.85rem; color: var(--ink); font-weight: 700;
+  }
+
+  /* ── ABSTRACT ── */
+  .abstract-wrap {
+    display: grid; grid-template-columns: 3px 1fr;
+    gap: 0 2rem;
+  }
+  .abstract-bar { background: var(--accent); border-radius: 2px; }
+  .abstract-text {
+    font-size: 15.5px; color: var(--ink2); line-height: 2;
+  }
+  .abstract-text strong { color: var(--ink); font-weight: 600; }
+
+  /* ── FINDINGS GRID ── */
+  .findings-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px; overflow: hidden;
+    margin-bottom: 3rem;
+  }
+  .finding-card {
+    background: var(--paper);
+    padding: 1.75rem;
+    transition: background 0.2s;
+  }
+  .finding-card:hover { background: var(--paper2); }
+  .finding-icon {
+    font-size: 1.4rem; margin-bottom: 0.75rem;
+  }
+  .finding-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+  .finding-body { font-size: 12.5px; color: var(--muted); line-height: 1.8; }
+  .finding-quote {
+    margin-top: 0.75rem; font-style: italic;
+    font-size: 12px; color: var(--muted2);
+    border-left: 2px solid var(--border);
+    padding-left: 0.75rem;
+  }
+
+  /* ── ARCHITECTURE ── */
+  .arch-container {
+    background: var(--paper2);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 2.5rem; overflow-x: auto;
+  }
+
+  /* ── AGENTS TABLE ── */
+  .agents-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  .agents-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); padding: 0.6rem 1rem;
+    text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .agents-table td {
+    padding: 1rem; vertical-align: top;
+    border-bottom: 1px solid var(--paper3); color: var(--ink2);
+    line-height: 1.7;
+  }
+  .agents-table tr:last-child td { border-bottom: none; }
+  .agents-table tr:hover td { background: var(--paper2); }
+  .agent-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 500; color: var(--ink);
+    white-space: nowrap;
+  }
+  .agent-badge {
+    display: inline-block; margin-top: 0.3rem;
+    font-size: 9px; padding: 0.1rem 0.4rem; border-radius: 100px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .badge-red  { background: rgba(192,57,43,0.1); color: var(--accent); }
+  .badge-teal { background: rgba(26,107,90,0.1); color: var(--teal); }
+  .badge-gold { background: rgba(184,134,11,0.1); color: var(--gold); }
+  .badge-blue { background: rgba(30,80,150,0.1); color: #1e5096; }
+
+  /* ── PIPELINE (non-linear orbital) ── */
+  .orbit-wrap {
+    position: relative; width: 100%; aspect-ratio: 2 / 1;
+    min-height: 320px;
+  }
+  .orbit-wrap svg { width: 100%; height: 100%; }
+
+  /* Stage tooltip cards that appear on hover */
+  .stage-cards {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .stage-card {
+    background: var(--paper); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.1rem;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: default;
+  }
+  .stage-card:hover { border-color: var(--accent); background: var(--paper2); }
+  .stage-card-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.12em; margin-bottom: 0.4rem;
+  }
+  .stage-card-desc { font-size: 11.5px; color: var(--muted2); line-height: 1.7; }
+
+  /* ── RESULTS ── */
+  .results-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  .result-card {
+    background: var(--paper2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.75rem;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .result-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.07);
+  }
+  .result-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .result-card.rq1::before { background: var(--accent); }
+  .result-card.rq2::before { background: var(--teal); }
+  .result-card.rq3::before { background: var(--gold); }
+  .result-card.field::before { background: #1e5096; }
+
+  .rq-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+    padding: 0.18rem 0.5rem; border-radius: 100px;
+    margin-bottom: 0.75rem; display: inline-block;
+  }
+  .rq1 .rq-label { background: rgba(192,57,43,0.1); color: var(--accent); }
+  .rq2 .rq-label { background: rgba(26,107,90,0.1); color: var(--teal); }
+  .rq3 .rq-label { background: rgba(184,134,11,0.1); color: var(--gold); }
+  .field .rq-label { background: rgba(30,80,150,0.1); color: #1e5096; }
+
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; font-weight: 700; color: var(--ink); margin-bottom: 0.75rem;
+  }
+  .result-body { font-size: 13px; color: var(--muted2); line-height: 1.85; }
+  .result-body strong { color: var(--ink2); font-weight: 600; }
+
+  .result-stat {
+    margin-top: 1rem; padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: baseline; gap: 0.5rem;
+  }
+  .result-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; font-weight: 700; color: var(--accent);
+  }
+  .result-stat-desc {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px; color: var(--muted);
+  }
+
+  /* ── QUOTES ── */
+  .quotes-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;
+    margin-top: 2rem;
+  }
+  .quote-card {
+    background: var(--paper2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.5rem;
+  }
+  .quote-text {
+    font-style: italic; font-size: 13px; color: var(--ink2);
+    line-height: 1.85; margin-bottom: 0.75rem;
+  }
+  .quote-attr {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.06em;
+  }
+
+  /* ── TECH STACK ── */
+  .tech-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem;
+  }
+  .tech-block-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; margin-bottom: 1rem; color: var(--ink);
+  }
+  .tech-block-title em { font-style: italic; color: var(--accent); }
+  .tech-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .tech-list li {
+    font-size: 13px; color: var(--muted2); padding-left: 1.2rem; position: relative;
+    line-height: 1.7;
+  }
+  .tech-list li::before {
+    content: '›'; position: absolute; left: 0; color: var(--accent); font-size: 12px;
+  }
+  .tech-list li strong { color: var(--ink2); font-weight: 600; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.25rem; }
+  .chip {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; padding: 0.25rem 0.65rem; border-radius: 2px;
+    border: 1px solid var(--border); color: var(--muted);
+    transition: all 0.2s;
+  }
+  .chip:hover { border-color: var(--teal); color: var(--teal); background: rgba(26,107,90,0.05); }
+
+  /* ── AUTHORS ── */
+  .authors-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .author-card {
+    background: var(--paper2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.5rem 1.25rem;
+    text-align: center; transition: transform 0.3s, border-color 0.3s;
+  }
+  .author-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+
+  .author-init {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 0.9rem;
+    font-family: 'Playfair Display', serif; font-size: 1.2rem;
+  }
+  .author-card:nth-child(1) .author-init { background: rgba(192,57,43,0.12); color: var(--accent); }
+  .author-card:nth-child(2) .author-init { background: rgba(26,107,90,0.1); color: var(--teal); }
+  .author-card:nth-child(3) .author-init { background: rgba(184,134,11,0.1); color: var(--gold); }
+  .author-card:nth-child(4) .author-init { background: rgba(30,80,150,0.1); color: #1e5096; }
+  .author-card:nth-child(5) .author-init { background: rgba(100,40,120,0.1); color: #642878; }
+  .author-card:nth-child(6) .author-init { background: rgba(20,80,50,0.1); color: #145032; }
+  .author-card:nth-child(7) .author-init { background: rgba(192,57,43,0.08); color: var(--accent); }
+  .author-card:nth-child(8) .author-init { background: rgba(26,107,90,0.08); color: var(--teal); }
+
+  .author-name { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 0.2rem; }
+  .author-affil {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--muted); line-height: 1.6;
+  }
+
+  /* ── CITATION ── */
+  .citation-box {
+    background: var(--paper3); border: 1px solid var(--border);
+    border-left: 3px solid var(--teal); border-radius: 0 4px 4px 0;
+    padding: 1.5rem 1.75rem; position: relative;
+  }
+  .citation-pre {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--ink2); line-height: 1.85;
+    white-space: pre-wrap;
+  }
+  .copy-btn {
+    position: absolute; top: 1rem; right: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.3rem 0.7rem; border: 1px solid var(--border);
+    background: var(--paper); color: var(--muted);
+    border-radius: 2px; cursor: pointer; transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+  /* ── FOOTER ── */
+  footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.5rem 3rem; border-top: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  footer a:hover { color: var(--accent); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav, .page, footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .hero { grid-template-columns: 1fr; padding: 7rem 1.5rem 3rem; }
+    .hero-stats { display: none; }
+    .findings-grid, .results-grid, .quotes-grid, .tech-grid { grid-template-columns: 1fr; }
+    .authors-grid { grid-template-columns: 1fr 1fr; }
+    .stage-cards { grid-template-columns: 1fr 1fr; }
+    .orbit-wrap { aspect-ratio: unset; min-height: 260px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-left">
+    <a href="./index.html" class="nav-back">← Jin Ping Ng</a>
+    <span class="nav-divider">|</span>
+    <span class="nav-venue">UIST '26</span>
+  </div>
+  <div style="display:flex;gap:0.75rem;align-items:center;">
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">Preprint · arXiv:2511.17906</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="pill pill-red">Multi-Agent Systems</span>
+      <span class="pill pill-teal">HCI · UIST '26</span>
+      <span class="pill pill-muted">Animation Pre-Production</span>
+    </div>
+
+    <h1 class="hero-title">
+      <em>AnimAgents:</em> Coordinating Multi-Stage Animation Pre-Production with Human–Multi-Agent Collaboration
+    </h1>
+
+    <p class="hero-subtitle">
+      A human–AI collaborative system powered by a multi-agent architecture that introduces a stage-aware interaction paradigm for animation pre-production — enabling creators to maintain continuity, coordination, and creative control from ideation to storyboard.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="#abstract" class="btn btn-primary">↓ Read Paper</a>
+      <a href="#architecture" class="btn btn-ghost">Explore System</a>
+      <a href="#results" class="btn btn-ghost">View Results</a>
+      <a href="#authors" class="btn btn-ghost">Authors</a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stats-title">Study at a Glance</div>
+    <div class="stat-row">
+      <div class="stat-item">
+        <span class="stat-num">12</span>
+        <span class="stat-lbl">Formative Study Professionals</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">16</span>
+        <span class="stat-lbl">Summative Study Creators</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">4</span>
+        <span class="stat-lbl">Field Study Creators</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">p&lt;.01</span>
+        <span class="stat-lbl">Overall Satisfaction</span>
+      </div>
+    </div>
+    <div class="venue-block">
+      <div class="venue-name">UIST '26 — Full Paper</div>
+      <div class="venue-details">October 2026 · UIST '26 · 20 pages</div>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- 01 ABSTRACT -->
+  <section id="abstract">
+    <div class="sec-header">
+      <span class="sec-num">01</span>
+      <h2 class="sec-title">Abstract</h2>
+    </div>
+    <div class="abstract-wrap">
+      <div class="abstract-bar"></div>
+      <p class="abstract-text">
+        Animation pre-production transforms early concepts into a coherent blueprint across interdependent stages such as ideation, scripting, design, and storyboarding. Although many professionals use generative AI tools for early exploration and pitching, our formative study with <strong>12 animation professionals</strong> revealed key challenges: creators struggle to coordinate fragmented outputs across stages, manage large volumes of content, and maintain continuity and creative control as ideas evolve. To address this gap, we present <strong>AnimAgents</strong>, a human–AI collaborative system powered by a <strong>multi-agent architecture</strong> that introduces a <strong>stage-aware interaction paradigm</strong> for animation pre-production. The system integrates stage-specific workspaces with element-level manipulation and refinement, enabling creators to organize outputs, revisit prior decisions, and carry evolving content across stages in a controllable and traceable workflow. In a <strong>within-subjects study with 16 professionals</strong>, AnimAgents significantly outperformed a strong single-agent baseline in coordination, consistency, and overall satisfaction (<strong>p &lt; .01</strong>). A <strong>field deployment with four creators</strong> further demonstrated its effectiveness in real-world projects.
+      </p>
+    </div>
+  </section>
+
+  <!-- 02 FORMATIVE STUDY -->
+  <section id="formative">
+    <div class="sec-header">
+      <span class="sec-num">02</span>
+      <h2 class="sec-title">Formative Study Findings</h2>
+    </div>
+
+    <p style="font-size:14px;color:var(--muted2);max-width:70ch;margin-bottom:2rem;line-height:1.85;">
+      We recruited <strong style="color:var(--ink2);">12 participants</strong> (1–16 YoE, Mean = 7.6): 6 creative directors from three animation studios (P1–P6) and 6 independent animators (P7–P12), with 1.5–2 hour semi-structured interviews covering pre-production workflows, GenAI use, and pain points.
+    </p>
+
+    <div class="findings-grid">
+      <div class="finding-card">
+        <div class="finding-icon">⚡</div>
+        <div class="finding-title">Information Overload</div>
+        <div class="finding-body">Participants struggled to manage large volumes of visual and textual material across stages. AI-generated outputs were frequently "mediocre," "irrelevant," or "overly generic," requiring substantial filtering effort.</div>
+        <div class="finding-quote">"There's so much output it's really hard to sort through." — P3</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">🔗</div>
+        <div class="finding-title">Continuity Breakdown</div>
+        <div class="finding-body">Cross-stage continuity was severely undermined by fragmented tools. Earlier decisions were easily lost and GenAI outputs drifted from original story directions over time.</div>
+        <div class="finding-quote">"Even when I asked ChatGPT to generate prompts in the same style, the images from MidJourney still didn't match." — P12</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">📋</div>
+        <div class="finding-title">Need for Project Management</div>
+        <div class="finding-body">Participants wanted GenAI to act as a workflow partner — helping coordinate tasks, structure outputs, and support project management throughout the process, not just generate ideas.</div>
+        <div class="finding-quote">"What we lack most isn't more creative ideas. It's planning, organizing information, and telling me what's still missing." — P7</div>
+      </div>
+    </div>
+
+    <div style="background:var(--paper2);border:1px solid var(--border);border-radius:4px;padding:1.75rem;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:0.14em;color:var(--muted);margin-bottom:1.25rem;">Design Goals Derived from Findings</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;">
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--accent);font-weight:500;margin-bottom:0.4rem;">DG1 — Continuity & Traceability</div>
+          <div style="font-size:12.5px;color:var(--muted2);line-height:1.75;">Help creators organize outputs, track progress, revisit earlier decisions, and maintain narrative and visual consistency across the full workflow.</div>
+        </div>
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--teal);font-weight:500;margin-bottom:0.4rem;">DG2 — Structured Visualization</div>
+          <div style="font-size:12.5px;color:var(--muted2);line-height:1.75;">Offer stage-specific visualizations that help creators navigate, compare, and communicate evolving outputs aligned with existing artistic workflows.</div>
+        </div>
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--gold);font-weight:500;margin-bottom:0.4rem;">DG3 — Agency Preservation</div>
+          <div style="font-size:12.5px;color:var(--muted2);line-height:1.75;">Assist with idea expansion and refinement while reducing low-value overhead, enabling creators to control how AI participates in the process.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 SYSTEM ARCHITECTURE -->
+  <section id="architecture">
+    <div class="sec-header">
+      <span class="sec-num">03</span>
+      <h2 class="sec-title">System Architecture</h2>
+    </div>
+
+    <p style="font-size:14px;color:var(--muted2);max-width:72ch;margin-bottom:2.5rem;line-height:1.85;">
+      AnimAgents organizes work into <strong style="color:var(--ink2);">five stages</strong> with a <strong style="color:var(--ink2);">centralized Core Agent</strong> coordinating four Specialized Agents. Stage-specific boards serve as persistent project memory, and lineage-aware blocks preserve revisions and branches over time.
+    </p>
+
+    <!-- Non-linear pipeline diagram -->
+    <div class="arch-container" style="margin-bottom:2.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:0.14em;color:var(--muted);">Cross-Stage Workflow — Non-Linear Navigation</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--teal);">Creators can jump to any stage at any time</div>
+      </div>
+
+      <!-- SVG orbital diagram -->
+      <div class="orbit-wrap">
+        <svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" aria-label="AnimAgents non-linear stage diagram">
+          <defs>
+            <!-- Arrowhead both ways -->
+            <marker id="arrRed" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="#c0392b" opacity="0.6"/>
+            </marker>
+            <marker id="arrTeal" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="#1a6b5a" opacity="0.5"/>
+            </marker>
+            <marker id="arrGray" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="#b0a89e" opacity="0.4"/>
+            </marker>
+            <!-- Core Agent glow -->
+            <filter id="coreGlow">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <!-- Dashed pattern -->
+            <pattern id="bg-dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+              <circle cx="15" cy="15" r="0.8" fill="#d8d0c4" opacity="0.5"/>
+            </pattern>
+          </defs>
+
+          <!-- Background -->
+          <rect width="900" height="420" fill="#f2ede6"/>
+          <rect width="900" height="420" fill="url(#bg-dots)"/>
+
+          <!-- ── Cross-stage connection arcs (user-driven, non-linear) ── -->
+          <!-- Each stage can reach any other, shown as curved dashed arcs -->
+          <!-- Ideation ↔ Design (skip scripting) -->
+          <path d="M 310,185 Q 450,100 590,185"
+                stroke="#1a6b5a" stroke-width="1.2" stroke-dasharray="5,4"
+                fill="none" opacity="0.35" marker-end="url(#arrTeal)"/>
+          <path d="M 590,200 Q 450,130 310,200"
+                stroke="#1a6b5a" stroke-width="1.2" stroke-dasharray="5,4"
+                fill="none" opacity="0.35" marker-end="url(#arrTeal)"/>
+
+          <!-- Storyboard → Ideation (revisit) -->
+          <path d="M 760,195 Q 700,60 310,175"
+                stroke="#b0a89e" stroke-width="1" stroke-dasharray="4,4"
+                fill="none" opacity="0.3" marker-end="url(#arrGray)"/>
+
+          <!-- Design → Scripting (back-reference) -->
+          <path d="M 580,230 Q 520,280 430,235"
+                stroke="#b0a89e" stroke-width="1" stroke-dasharray="4,4"
+                fill="none" opacity="0.3" marker-end="url(#arrGray)"/>
+
+          <!-- Scripting → Storyboard (skip design) -->
+          <path d="M 460,245 Q 580,300 740,230"
+                stroke="#b0a89e" stroke-width="1" stroke-dasharray="4,4"
+                fill="none" opacity="0.25" marker-end="url(#arrGray)"/>
+
+          <!-- ── CORE AGENT (center) ── -->
+          <!-- Solid lines from Core Agent to each stage -->
+          <line x1="450" y1="185" x2="310" y2="190" stroke="#c0392b" stroke-width="1.5" opacity="0.5" marker-end="url(#arrRed)"/>
+          <line x1="450" y1="195" x2="310" y2="200" stroke="#c0392b" stroke-width="1.5" opacity="0.5"/>
+          <line x1="315" y1="190" x2="450" y2="185" stroke="#c0392b" stroke-width="1.5" opacity="0.5" marker-end="url(#arrRed)"/>
+
+          <line x1="450" y1="178" x2="420" y2="120" stroke="#c0392b" stroke-width="1.5" opacity="0.5" marker-end="url(#arrRed)"/>
+          <line x1="422" y1="122" x2="452" y2="180" stroke="#c0392b" stroke-width="1.5" opacity="0.5" marker-end="url(#arrRed)"/>
+
+          <line x1="460" y1="210" x2="590" y2="210" stroke="#c0392b" stroke-width="1.5" opacity="0.5" marker-end="url(#arrRed)"/>
+          <line x1="590" y1="205" x2="460" y2="205" stroke="#c0392b" stroke-width="1.5" opacity="0.5" marker-end="url(#arrRed)"/>
+
+          <line x1="468" y1="198" x2="750" y2="210" stroke="#c0392b" stroke-width="1.5" opacity="0.5" marker-end="url(#arrRed)"/>
+          <line x1="750" y1="215" x2="470" y2="203" stroke="#c0392b" stroke-width="1.5" opacity="0.5" marker-end="url(#arrRed)"/>
+
+          <!-- Cleaner approach: single bidirectional spokes -->
+          <!-- Wipe the above and do clean spokes -->
+          <rect width="900" height="420" fill="#f2ede6" opacity="0"/><!-- transparent reset trick not needed, just draw clean -->
+
+          <!-- Re-draw background cleanly -->
+          <rect width="900" height="420" fill="#f2ede6"/>
+          <rect width="900" height="420" fill="url(#bg-dots)"/>
+
+          <!-- Non-linear cross arcs first (behind everything) -->
+          <!-- Ideation ↔ Design (cross-stage skip) -->
+          <path d="M 218,175 Q 340,75 582,175"
+                stroke="#1a6b5a" stroke-width="1.1" stroke-dasharray="5,4"
+                fill="none" opacity="0.28"/>
+          <text x="397" y="96" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#1a6b5a" opacity="0.6" text-anchor="middle">skip stage</text>
+
+          <!-- Storyboard → Ideation (revisit early) -->
+          <path d="M 772,178 Q 600,38 218,168"
+                stroke="#b0a89e" stroke-width="1" stroke-dasharray="3,5"
+                fill="none" opacity="0.35"/>
+          <text x="490" y="42" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#b0a89e" opacity="0.7" text-anchor="middle">revisit earlier stage</text>
+
+          <!-- Design → Scripting (back-reference) -->
+          <path d="M 583,248 Q 500,310 417,250"
+                stroke="#b0a89e" stroke-width="1" stroke-dasharray="3,5"
+                fill="none" opacity="0.3"/>
+
+          <!-- Scripting → Storyboard (jump ahead) -->
+          <path d="M 420,253 Q 570,320 760,248"
+                stroke="#b0a89e" stroke-width="0.9" stroke-dasharray="3,5"
+                fill="none" opacity="0.25"/>
+
+          <!-- ── SPOKES: Core ↔ each stage (bidirectional) ── -->
+          <!-- Core ↔ Ideation -->
+          <line x1="408" y1="200" x2="255" y2="200" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <line x1="255" y1="210" x2="408" y2="210" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <!-- Core ↔ Planning -->
+          <line x1="432" y1="160" x2="415" y2="105" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <line x1="422" y1="107" x2="440" y2="162" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <!-- Core ↔ Scripting -->
+          <line x1="462" y1="235" x2="500" y2="295" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <line x1="507" y1="293" x2="469" y2="233" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <!-- Core ↔ Design -->
+          <line x1="493" y1="200" x2="645" y2="200" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <line x1="645" y1="210" x2="493" y2="210" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <!-- Core ↔ Storyboard -->
+          <line x1="490" y1="185" x2="755" y2="190" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+          <line x1="755" y1="200" x2="490" y2="195" stroke="#c0392b" stroke-width="1.4" opacity="0.45" marker-end="url(#arrRed)"/>
+
+          <!-- ── CORE AGENT (center) ── -->
+          <ellipse cx="450" cy="205" rx="68" ry="40" fill="#faf8f4" stroke="#c0392b" stroke-width="2" filter="url(#coreGlow)"/>
+          <ellipse cx="450" cy="205" rx="68" ry="40" fill="rgba(192,57,43,0.04)"/>
+          <text x="450" y="200" text-anchor="middle" font-family="'Playfair Display',serif" font-size="14" font-weight="700" fill="#c0392b">Core Agent</text>
+          <text x="450" y="216" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#7a7068">project manager</text>
+
+          <!-- ── PLANNING (top) ── -->
+          <ellipse cx="435" cy="76" rx="52" ry="28" fill="#faf8f4" stroke="#d8d0c4" stroke-width="1.5"/>
+          <text x="435" y="72" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11" font-weight="600" fill="#0e0c0a">Planning</text>
+          <text x="435" y="86" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8.5" fill="#7a7068">intent · goals</text>
+
+          <!-- ── IDEATION (left) ── -->
+          <ellipse cx="160" cy="205" rx="55" ry="32" fill="#faf8f4" stroke="#d8d0c4" stroke-width="1.5"/>
+          <text x="160" y="201" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11" font-weight="600" fill="#0e0c0a">Ideation</text>
+          <text x="160" y="216" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8.5" fill="#7a7068">concept · style · world</text>
+
+          <!-- ── SCRIPTING (bottom-left) ── -->
+          <ellipse cx="480" cy="335" rx="58" ry="30" fill="#faf8f4" stroke="#d8d0c4" stroke-width="1.5"/>
+          <text x="480" y="331" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11" font-weight="600" fill="#0e0c0a">Scripting</text>
+          <text x="480" y="346" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8.5" fill="#7a7068">outline · scenes · script</text>
+
+          <!-- ── DESIGN (right) ── -->
+          <ellipse cx="730" cy="205" rx="58" ry="32" fill="#faf8f4" stroke="#d8d0c4" stroke-width="1.5"/>
+          <text x="730" y="201" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11" font-weight="600" fill="#0e0c0a">Design</text>
+          <text x="730" y="216" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8.5" fill="#7a7068">characters · environment</text>
+
+          <!-- ── STORYBOARD (far right) ── -->
+          <ellipse cx="845" cy="205" rx="50" ry="28" fill="#faf8f4" stroke="#d8d0c4" stroke-width="1.5"/>
+          <text x="845" y="201" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11" font-weight="600" fill="#0e0c0a">Storyboard</text>
+          <text x="845" y="215" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8.5" fill="#7a7068">shots · frames</text>
+
+          <!-- ── Legend ── -->
+          <g transform="translate(20, 370)">
+            <line x1="0" y1="8" x2="28" y2="8" stroke="#c0392b" stroke-width="1.4"/>
+            <circle cx="14" cy="8" r="2" fill="#c0392b"/>
+            <text x="34" y="12" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#7a7068">Core ↔ Stage (bidirectional)</text>
+            <line x1="200" y1="8" x2="228" y2="8" stroke="#1a6b5a" stroke-width="1.1" stroke-dasharray="5,3"/>
+            <text x="234" y="12" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#7a7068">Stage ↔ Stage (skip / jump)</text>
+            <line x1="430" y1="8" x2="458" y2="8" stroke="#b0a89e" stroke-width="1" stroke-dasharray="3,4"/>
+            <text x="464" y="12" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#7a7068">Revisit earlier stage</text>
+          </g>
+
+          <!-- ── Note ── -->
+          <text x="450" y="398" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#b0a89e">
+            Stages are not fixed in sequence — creators revisit, skip, and branch at any point
+          </text>
+        </svg>
+      </div>
+
+      <!-- Stage cards below diagram -->
+      <div class="stage-cards">
+        <div class="stage-card">
+          <div class="stage-card-name" style="color:var(--accent);">Planning</div>
+          <div class="stage-card-desc">Core Agent records project-level intent, type, genre, audience, and goals. Coordinates all downstream stage activity.</div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-card-name" style="color:var(--teal);">Ideation</div>
+          <div class="stage-card-desc">Logline, story concept, world concept, character concepts, style description, hero images. Supports divergent alternatives.</div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-card-name" style="color:var(--gold);">Scripting</div>
+          <div class="stage-card-desc">Structure mapping, story outline, scene list, styleframes. Transitions from divergent to convergent narrative form.</div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-card-name" style="color:#1e5096;">Design → Storyboard</div>
+          <div class="stage-card-desc">Character & environment sheets (Design), then shot lists and storyboard frames (Storyboard). Final pre-production output.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agents table -->
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:0.14em;color:var(--muted);margin-bottom:1rem;">Specialized Agents — Roles & Responsibilities</div>
+    <div style="border:1px solid var(--border);border-radius:4px;overflow:hidden;">
+      <table class="agents-table">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Role Description</th>
+            <th>Primary Tasks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="agent-name">Core Agent</div>
+              <div class="agent-badge badge-red">Coordinator</div>
+            </td>
+            <td>Acts as project manager; interprets user intent, routes tasks to specialized agents, and validates outputs before publishing to boards. Maintains cross-stage project memory.</td>
+            <td>Task routing, memory management, stage switching, output validation, user communication.</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="agent-name">Ideation Agent</div>
+              <div class="agent-badge badge-teal">Divergent</div>
+            </td>
+            <td>Divergent and generative; explores multiple narrative directions and expands creative possibilities during early stages.</td>
+            <td>Story ideas, character concepts, world settings, narrative themes, style descriptions.</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="agent-name">Scripting Agent</div>
+              <div class="agent-badge badge-gold">Convergent</div>
+            </td>
+            <td>Convergent and structured; transforms abstract concepts into coherent narrative sequences and shot-level breakdowns.</td>
+            <td>Structure mapping, story outlines, scene lists, full scripts, shot lists for storyboarding.</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="agent-name">Design Agent</div>
+              <div class="agent-badge badge-blue">Visual</div>
+            </td>
+            <td>Visual and style-driven; transforms concept descriptions into concrete visual design materials with narrative coherence.</td>
+            <td>Character design sheets, environment designs; maintains visual coherence with narrative intent.</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="agent-name">Art Agent</div>
+              <div class="agent-badge badge-red">Illustrative</div>
+            </td>
+            <td>Illustrative and compositional; translates scripts and designs into polished visual assets for storyboards and styleframes.</td>
+            <td>Hero images, styleframes, storyboard frames; aligns visual composition with narrative and design requirements.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Core mechanisms -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-top:1.5rem;">
+      <div style="background:var(--paper);padding:1.5rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.6rem;">Cross-Stage Memory</div>
+        <div style="font-size:12.5px;color:var(--muted2);line-height:1.8;">Outputs from one stage remain available as structured context. Core Agent tracks approved artifacts, revisions, and relationships across boards. Long-term memory via ChromaDB vector store with time-ordered summarized chunks.</div>
+      </div>
+      <div style="background:var(--paper);padding:1.5rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.6rem;">Stage-Aware Delegation</div>
+        <div style="font-size:12.5px;color:var(--muted2);line-height:1.8;">The same user request is handled differently depending on active stage. Core Agent encourages divergent alternatives in Ideation, enforces narrative structure in Scripting, checks visual–narrative consistency in Storyboard.</div>
+      </div>
+      <div style="background:var(--paper);padding:1.5rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.6rem;">Controlled Publication</div>
+        <div style="font-size:12.5px;color:var(--muted2);line-height:1.8;">Outputs from Specialized Agents are validated by the Core Agent before publishing to the board. Results appear as lineage-aware blocks preserving revisions and branches, ensuring traceability and coherence.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 IMPLEMENTATION -->
+  <section id="implementation">
+    <div class="sec-header">
+      <span class="sec-num">04</span>
+      <h2 class="sec-title">Implementation</h2>
+    </div>
+
+    <div class="tech-grid">
+      <div>
+        <div class="tech-block-title">Runtime <em>&amp; Coordination</em></div>
+        <ul class="tech-list">
+          <li>Built on <strong>AutoGen Core 0.6.1</strong> with routed agents and asynchronous orchestration.</li>
+          <li><strong>Python + FastAPI</strong> backend with typed SSE events streamed into per-session queues via a dedicated ReplyAgent for real-time UI updates.</li>
+          <li><strong>Next.js</strong> frontend with stage-aware spatial boards, lineage-aware block components, and element-level selection.</li>
+          <li><strong>GPT-4.1-mini</strong> powers most agent behaviors; <strong>GPT-4.1-nano</strong> handles lightweight tasks such as memory retrieval.</li>
+          <li>Each request carries a <strong>cancellation token</strong>; interruptions or failures trigger safe termination and rollback of agent state.</li>
+        </ul>
+        <div class="chip-row">
+          <span class="chip">AutoGen 0.6.1</span>
+          <span class="chip">Python</span>
+          <span class="chip">FastAPI</span>
+          <span class="chip">Next.js</span>
+          <span class="chip">SSE</span>
+          <span class="chip">GPT-4.1-mini</span>
+          <span class="chip">GPT-4.1-nano</span>
+        </div>
+      </div>
+      <div>
+        <div class="tech-block-title">Memory <em>&amp; Generation</em></div>
+        <ul class="tech-list">
+          <li><strong>Short-term context</strong>: each agent maintains context over recent messages, tool calls, and outputs.</li>
+          <li><strong>Long-term memory</strong> (Core Agent only): interactions summarized into time-ordered chunks, indexed in <strong>ChromaDB</strong> vector store for later retrieval.</li>
+          <li><strong>Flux.1-Kontext-pro</strong> for image generation with stage-aware prompting and optional user reference images to preserve style and character consistency.</li>
+          <li>Generated images are stored and <strong>embedded directly into blocks</strong> on the interface boards.</li>
+        </ul>
+        <div class="chip-row">
+          <span class="chip">ChromaDB</span>
+          <span class="chip">RAG</span>
+          <span class="chip">Flux.1-Kontext-pro</span>
+          <span class="chip">Vector Store</span>
+          <span class="chip">WebSocket</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 RESULTS -->
+  <section id="results">
+    <div class="sec-header">
+      <span class="sec-num">05</span>
+      <h2 class="sec-title">Evaluation Results</h2>
+    </div>
+
+    <p style="font-size:14px;color:var(--muted2);max-width:72ch;margin-bottom:2rem;line-height:1.85;">
+      A <strong style="color:var(--ink2);">within-subjects study</strong> (N=16 professionals, 7-point Likert scale, Wilcoxon signed-rank tests) compared AnimAgents against a strong single-agent baseline using the same AutoGen framework, LLMs, and T2I model with a tailored full-pipeline system prompt. The baseline included parallel image generation and conversational interaction — intentionally stronger than typical industry tools.
+    </p>
+
+    <div class="results-grid">
+      <div class="result-card rq1">
+        <span class="rq-label">RQ1 — Coordination &amp; Continuity</span>
+        <div class="result-title">Stage Coordination &amp; Consistency</div>
+        <div class="result-body">AnimAgents significantly improved coordination, task progress tracking, and subtask breakdown across stages (<strong>p &lt; .01</strong>). In the open-ended task, <strong>100% of participants preferred AnimAgents</strong> for cross-stage coordination, and 81% preferred it for creative consistency. Many described it as a "project manager" rather than just a consultant.</div>
+        <div class="result-stat">
+          <span class="result-stat-num">13%</span>
+          <span class="result-stat-desc">faster task completion (Mean 34.4 vs 39.6 minutes, p &lt; .01)</span>
+        </div>
+      </div>
+
+      <div class="result-card rq2">
+        <span class="rq-label">RQ2 — Organization &amp; Traceability</span>
+        <div class="result-title">Output Management &amp; Traceability</div>
+        <div class="result-body">Significantly better for keeping content organized and managing information without overload (<strong>p &lt; .01</strong>, Q6; p &lt; .05, Q7). <strong>94% of participants preferred AnimAgents</strong> for output management. Stage-specific boards matched participants' visual-spatial mental models and contrasted sharply with the linear scroll of chat-only tools.</div>
+        <div class="result-stat">
+          <span class="result-stat-num">94%</span>
+          <span class="result-stat-desc">participant preference for output management</span>
+        </div>
+      </div>
+
+      <div class="result-card rq3">
+        <span class="rq-label">RQ3 — Agency &amp; Creative Exploration</span>
+        <div class="result-title">Controllability &amp; Satisfaction</div>
+        <div class="result-body">Rated significantly better for revising outputs (<strong>p &lt; .05</strong>) and for shaping creative vision rather than automating tasks (<strong>p &lt; .05</strong>). Element-level selection allowed precise, layer-like editing. Rated significantly higher for reducing mental effort and <strong>overall satisfaction (p &lt; .01)</strong>. Log analysis showed directive interactions rose from 10% to 22%, and revisions dropped from 40% to 30%.</div>
+        <div class="result-stat">
+          <span class="result-stat-num">94%</span>
+          <span class="result-stat-desc">participant preference for overall satisfaction</span>
+        </div>
+      </div>
+
+      <div class="result-card field">
+        <span class="rq-label">RQ4 — Field Study</span>
+        <div class="result-title">Real-World Deployment (1 Week, N=4)</div>
+        <div class="result-body">Commercial studio director (P5) reduced storyboard delivery from a week to a day. Original animation director (P24) valued project management but noted AI visuals insufficient for high-standard original work. Both independent animators (P8, P19) valued scaffolding for pre-production stages they typically rushed or skipped. P8 explored agent role-play, assigning director personas to agents for unexpected narrative directions.</div>
+        <div class="result-stat">
+          <span class="result-stat-num">4</span>
+          <span class="result-stat-desc">professionals across commercial studio, original studio, and freelance contexts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Participant quotes -->
+    <div class="quotes-grid">
+      <div class="quote-card">
+        <div class="quote-text">"It consolidates each stage's task and systematically places everything from different departments into one place."</div>
+        <div class="quote-attr">P8 — Independent Animator</div>
+      </div>
+      <div class="quote-card">
+        <div class="quote-text">"From character design to styleframes and storyboards, the style was maintained precisely."</div>
+        <div class="quote-attr">P22 — Independent Animator</div>
+      </div>
+      <div class="quote-card">
+        <div class="quote-text">"AnimAgents gives me several complete storyboard versions. Even if not every frame was usable, it was more than enough to communicate with clients."</div>
+        <div class="quote-attr">P5 — Commercial Studio Director</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 CONTRIBUTIONS -->
+  <section id="contributions">
+    <div class="sec-header">
+      <span class="sec-num">06</span>
+      <h2 class="sec-title">Contributions</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;">
+      <div style="background:var(--paper2);border:1px solid var(--border);border-radius:4px;padding:1.75rem;">
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;color:var(--border);line-height:1;margin-bottom:0.75rem;">01</div>
+        <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:0.5rem;">Formative Study</div>
+        <div style="font-size:12.5px;color:var(--muted2);line-height:1.8;">A formative study of animation pre-production with 12 professional creative directors and independent animators, identifying key challenges in cross-stage coordination, continuity, and information management.</div>
+      </div>
+      <div style="background:var(--paper2);border:1px solid var(--border);border-radius:4px;padding:1.75rem;">
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;color:var(--border);line-height:1;margin-bottom:0.75rem;">02</div>
+        <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:0.5rem;">AnimAgents System</div>
+        <div style="font-size:12.5px;color:var(--muted2);line-height:1.8;">A stage-aware human–multi-agent collaborative workflow for AI-supported pre-production exploration organized around stage-specific boards and block- and element-level operations supporting revisitable, controllable, traceable cross-stage refinement.</div>
+      </div>
+      <div style="background:var(--paper2);border:1px solid var(--border);border-radius:4px;padding:1.75rem;">
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;color:var(--border);line-height:1;margin-bottom:0.75rem;">03</div>
+        <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:0.5rem;">Multi-Method Evaluation</div>
+        <div style="font-size:12.5px;color:var(--muted2);line-height:1.8;">A controlled within-subjects summative study (N=16) and real-world field deployments (N=4) showing how AnimAgents improves consistency, information management, traceability, and creative control in animation pre-production workflows.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 AUTHORS & CITATION -->
+  <section id="authors">
+    <div class="sec-header">
+      <span class="sec-num">07</span>
+      <h2 class="sec-title">Authors</h2>
+    </div>
+
+    <div class="authors-grid" style="grid-template-columns:repeat(4,1fr);">
+      <div class="author-card">
+        <div class="author-init">WF</div>
+        <div class="author-name">Wen-Fan Wang</div>
+        <div class="author-affil">First Author<br>NTU</div>
+      </div>
+      <div class="author-card">
+        <div class="author-init">CT</div>
+        <div class="author-name">Chien-Ting Lu</div>
+        <div class="author-affil">Co-Author<br>NTU</div>
+      </div>
+      <div class="author-card">
+        <div class="author-init">JP</div>
+        <div class="author-name">Jin Ping Ng</div>
+        <div class="author-affil">Co-Author<br>NTU GINM</div>
+      </div>
+      <div class="author-card">
+        <div class="author-init">YT</div>
+        <div class="author-name">Yi-Ting Chiu</div>
+        <div class="author-affil">Co-Author<br>NTU</div>
+      </div>
+      <div class="author-card">
+        <div class="author-init">TY</div>
+        <div class="author-name">Ting-Ying Lee</div>
+        <div class="author-affil">Co-Author<br>NTU</div>
+      </div>
+      <div class="author-card">
+        <div class="author-init">MS</div>
+        <div class="author-name">Miaosen Wang</div>
+        <div class="author-affil">Co-Author<br>NTU</div>
+      </div>
+      <div class="author-card">
+        <div class="author-init">BY</div>
+        <div class="author-name">Bing-Yu Chen</div>
+        <div class="author-affil">Research Advisor<br>IGL, NTU</div>
+      </div>
+      <div class="author-card">
+        <div class="author-init">XA</div>
+        <div class="author-name">Xiang'Anthony' Chen</div>
+        <div class="author-affil">Co-Author<br>NTU</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:0.16em;color:var(--muted);margin-bottom:0.9rem;">BibTeX Citation</div>
+      <div class="citation-box">
+        <button class="copy-btn" id="copy-btn">Copy</button>
+        <pre class="citation-pre" id="citation-text">@inproceedings{wang2025animagents,
+  title={AnimAgents: Coordinating Multi-Stage Animation Pre-Production
+         with Human–Multi-Agent Collaboration},
+  author={Wang, Wen-Fan and Lu, Chien-Ting and Ng, Jin Ping and
+          Chiu, Yi-Ting and Lee, Ting-Ying and Wang, Miaosen and
+          Chen, Bing-Yu and Chen, Xiang'Anthony'},
+  booktitle={Proceedings of the ACM Symposium on User Interface Software
+             in Interactive Software and Technology (UIST '26)},
+  pages={1--20},
+  year={2026},
+  publisher={ACM},
+  address={ACM},
+  note={arXiv preprint arXiv:2511.17906}
+}</pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <a href="#">← Jin Ping Ng</a>
+  <span>AnimAgents · UIST '26 · National Taiwan University</span>
+  <a href="#">↑ Top</a>
+</footer>
+
+<script>
+  // Scroll effects
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', scrollY > 50);
+  });
+
+  // Intersection observer for section reveals
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.06 });
+  document.querySelectorAll('section').forEach(s => obs.observe(s));
+
+  // Copy citation
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const text = document.getElementById('citation-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied!';
+      btn.style.background = 'var(--teal)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'var(--teal)';
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
+    });
+  });
+</script>
+</body>
+</html>
